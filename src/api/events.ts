@@ -1,20 +1,191 @@
-import api from './client';
-import type { Event, PaginatedResponse } from '../types';
+import api from "./client";
+
+import type {
+  Event,
+  PaginatedResponse,
+  Registration,
+} from "../types";
+
+/* ================================================= */
+/* RESPONSE TYPES */
+/* ================================================= */
+
+interface EventResponse {
+  success: boolean;
+  data: Event;
+}
+
+interface RegistrationResponse {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
+/* ================================================= */
+/* EVENTS API */
+/* ================================================= */
 
 export const eventsApi = {
-  getAll: (params?: { page?: number; limit?: number; search?: string; category?: string }) =>
-    api.get<PaginatedResponse<Event>>('/events', { params }).then((r) => r.data),
+  /* ---------------- GET ALL EVENTS ---------------- */
 
-  getById: (id: string) => api.get<Event>(`/events/${id}`).then((r) => r.data),
+  getAll: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<PaginatedResponse<Event>> => {
+    const response = await api.get<
+      PaginatedResponse<Event>
+    >("/events", {
+      params,
+    });
 
-  create: (data: Partial<Event>) => api.post<Event>('/events', data).then((r) => r.data),
+    return response.data;
+  },
 
-  update: (id: string, data: Partial<Event>) =>
-    api.put<Event>(`/events/${id}`, data).then((r) => r.data),
+  /* ---------------- GET SINGLE EVENT ---------------- */
 
-  delete: (id: string) => api.delete(`/events/${id}`).then((r) => r.data),
+  getById: async (
+    id: string | number
+  ): Promise<Event> => {
+    const response = await api.get<EventResponse>(
+      `/events/${id}`
+    );
 
-  register: (id: string) => api.post(`/events/${id}/register`).then((r) => r.data),
+    return response.data.data;
+  },
 
-  unregister: (id: string) => api.delete(`/events/${id}/register`).then((r) => r.data),
+  /* ---------------- REGISTER ---------------- */
+
+  register: async (
+    id: string | number
+  ): Promise<RegistrationResponse> => {
+    const response =
+      await api.post<RegistrationResponse>(
+        `/events/${id}/register`
+      );
+
+    return response.data;
+  },
+
+  /* ---------------- UNREGISTER ---------------- */
+
+  unregister: async (
+    id: string | number
+  ): Promise<RegistrationResponse> => {
+    const response =
+      await api.delete<RegistrationResponse>(
+        `/events/${id}/unregister`
+      );
+
+    return response.data;
+  },
+
+  /* ================================================= */
+  /* ADMIN EVENTS */
+  /* ================================================= */
+
+  /* ---------------- CREATE EVENT ---------------- */
+
+  create: async (
+    data: Partial<Event>
+  ): Promise<Event> => {
+    const response = await api.post<EventResponse>(
+      "/admin/events",
+      data
+    );
+
+    return response.data.data;
+  },
+
+  /* ---------------- UPDATE EVENT ---------------- */
+
+  update: async (
+    id: string | number,
+    data: Partial<Event>
+  ): Promise<Event> => {
+    const response = await api.put<EventResponse>(
+      `/admin/events/${id}`,
+      data
+    );
+
+    return response.data.data;
+  },
+
+  /* ---------------- DELETE EVENT ---------------- */
+
+  delete: async (
+    id: string | number
+  ): Promise<void> => {
+    await api.delete(`/admin/events/${id}`);
+  },
+
+  /* ---------------- PUBLISH EVENT ---------------- */
+
+  publish: async (
+    id: string | number
+  ) => {
+    const response = await api.post(
+      `/admin/events/${id}/publish`
+    );
+
+    return response.data;
+  },
+
+  /* ---------------- UNPUBLISH EVENT ---------------- */
+
+  unpublish: async (
+    id: string | number
+  ) => {
+    const response = await api.post(
+      `/admin/events/${id}/unpublish`
+    );
+
+    return response.data;
+  },
+
+  /* ---------------- CANCEL EVENT ---------------- */
+
+  cancel: async (
+    id: string | number
+  ) => {
+    const response = await api.post(
+      `/admin/events/${id}/cancel`
+    );
+
+    return response.data;
+  },
+
+  /* ================================================= */
+  /* REGISTRATIONS */
+  /* ================================================= */
+
+  /* ---------------- MY REGISTRATIONS ---------------- */
+
+  getMyRegistrations: async (): Promise<
+    Registration[]
+  > => {
+    const response = await api.get<{
+      success: boolean;
+      data: Registration[];
+    }>("/events/my-registrations");
+
+    return response.data.data;
+  },
+
+  /* ---------------- ADMIN REGISTRATIONS ---------------- */
+
+  getAllRegistrations: async (params?: {
+    page?: number;
+    limit?: number;
+    eventId?: number;
+  }): Promise<Registration[]> => {
+    const response = await api.get<{
+      success: boolean;
+      data: Registration[];
+    }>("/admin/registrations", {
+      params,
+    });
+
+    return response.data.data;
+  },
 };

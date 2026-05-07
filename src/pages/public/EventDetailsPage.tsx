@@ -1,177 +1,359 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, MapPin, Users, Clock, ArrowLeft, User } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { eventsApi } from '../../api';
-import { useAuth } from '../../context/AuthContext';
-import { Button, Badge, Skeleton } from '../../components/ui';
-import Navbar from '../../components/layout/Navbar';
+import { useParams, useNavigate, Link } from "react-router-dom";
+
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+
+import {
+  Calendar,
+  Users,
+  ArrowLeft,
+} from "lucide-react";
+
+import toast from "react-hot-toast";
+
+import { eventsApi } from "../../api";
+
+import { useAuth } from "../../context/AuthContext";
+
+import {
+  Button,
+  Badge,
+  Skeleton,
+} from "../../components/ui";
+
+import Navbar from "../../components/layout/Navbar";
 
 export default function EventDetailsPage() {
   const { id } = useParams<{ id: string }>();
+
   const navigate = useNavigate();
+
   const { user } = useAuth();
+
   const queryClient = useQueryClient();
 
-  const { data: event, isLoading } = useQuery({
-    queryKey: ['event', id],
+  /* ================================================= */
+  /* QUERY */
+  /* ================================================= */
+
+  const {
+    data: event,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["event", id],
+
     queryFn: () => eventsApi.getById(id!),
+
     enabled: !!id,
   });
 
+  /* ================================================= */
+  /* REGISTER */
+  /* ================================================= */
+
   const registerMutation = useMutation({
     mutationFn: () => eventsApi.register(id!),
+
     onSuccess: () => {
-      toast.success('Registered successfully!');
-      queryClient.invalidateQueries({ queryKey: ['event', id] });
+      toast.success("Registered successfully!");
+
+      queryClient.invalidateQueries({
+        queryKey: ["event", id],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["events"],
+      });
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Registration failed'),
+
+    onError: (err: any) => {
+      toast.error(
+        err?.response?.data?.message ||
+          "Registration failed"
+      );
+    },
   });
 
+  /* ================================================= */
+  /* UNREGISTER */
+  /* ================================================= */
+
   const unregisterMutation = useMutation({
-    mutationFn: () => eventsApi.unregister(id!),
+    mutationFn: () =>
+      eventsApi.unregister(id!),
+
     onSuccess: () => {
-      toast.success('Unregistered successfully');
-      queryClient.invalidateQueries({ queryKey: ['event', id] });
+      toast.success(
+        "Registration cancelled"
+      );
+
+      queryClient.invalidateQueries({
+        queryKey: ["event", id],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["events"],
+      });
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Unregistration failed'),
+
+    onError: (err: any) => {
+      toast.error(
+        err?.response?.data?.message ||
+          "Failed to unregister"
+      );
+    },
   });
+
+  /* ================================================= */
+  /* LOADING */
+  /* ================================================= */
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <Skeleton className="h-8 w-32 mb-8" />
-          <Skeleton className="h-64 w-full mb-6 rounded-xl" />
-          <Skeleton className="h-8 w-3/4 mb-4" />
-          <Skeleton className="h-4 w-1/2 mb-2" />
-          <Skeleton className="h-4 w-2/3" />
+
+        <div className="mx-auto max-w-4xl px-4 py-8">
+          <Skeleton className="mb-6 h-8 w-32" />
+
+          <Skeleton className="mb-6 h-72 w-full rounded-2xl" />
+
+          <Skeleton className="mb-4 h-10 w-3/4" />
+
+          <Skeleton className="mb-2 h-5 w-1/2" />
+
+          <Skeleton className="h-5 w-2/3" />
         </div>
       </div>
     );
   }
 
-  if (!event) {
+  /* ================================================= */
+  /* ERROR */
+  /* ================================================= */
+
+  if (error || !event) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="max-w-4xl mx-auto px-4 py-8 text-center">
-          <p className="text-gray-500">Event not found.</p>
+
+        <div className="mx-auto max-w-4xl px-4 py-16 text-center">
+          <h2 className="text-2xl font-bold text-gray-900">
+            Event not found
+          </h2>
+
+          <p className="mt-3 text-gray-600">
+            The event may have been deleted
+            or is unavailable.
+          </p>
+
+          <button
+            onClick={() => navigate("/events")}
+            className="mt-6 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
+          >
+            Browse Events
+          </button>
         </div>
       </div>
     );
   }
 
-  const isFull = event.registeredCount >= event.capacity;
-  const isRegistered = event.isRegistered;
+  /* ================================================= */
+  /* DERIVED */
+  /* ================================================= */
+
+  const registeredCount =
+    event.registeredCount || 0;
+
+  const isFull =
+    registeredCount >= event.capacity;
+
+  const isRegistered =
+    event.isRegistered;
+
+  const capacityPercentage = Math.min(
+    Math.round(
+      (registeredCount /
+        event.capacity) *
+        100
+    ),
+    100
+  );
+
+  /* ================================================= */
+  /* UI */
+  /* ================================================= */
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* ================================================= */}
+        {/* BACK BUTTON */}
+        {/* ================================================= */}
+
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+          className="mb-6 flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-gray-700"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="h-4 w-4" />
+
           Back
         </button>
 
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          {/* Hero image */}
-          <div className="h-64 sm:h-80 bg-gradient-to-br from-emerald-100 to-sky-100 flex items-center justify-center">
-            {event.image ? (
-              <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-            ) : (
-              <Calendar className="w-20 h-20 text-emerald-400" />
-            )}
+        {/* ================================================= */}
+        {/* CARD */}
+        {/* ================================================= */}
+
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          {/* HERO */}
+          <div className="flex h-72 items-center justify-center bg-gradient-to-br from-emerald-100 to-sky-100">
+            <Calendar className="h-20 w-20 text-emerald-500" />
           </div>
 
+          {/* CONTENT */}
           <div className="p-6 sm:p-8">
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              <Badge variant="success">{event.category}</Badge>
-              {isFull && <Badge variant="danger">Full</Badge>}
-              {isRegistered && <Badge variant="info">Registered</Badge>}
+            {/* STATUS */}
+            <div className="mb-4 flex flex-wrap gap-2">
+              <Badge
+                variant={
+                  event.status ===
+                  "published"
+                    ? "success"
+                    : event.status ===
+                      "draft"
+                    ? "warning"
+                    : "danger"
+                }
+              >
+                {event.status}
+              </Badge>
+
+              {isFull && (
+                <Badge variant="danger">
+                  Full
+                </Badge>
+              )}
+
+              {isRegistered && (
+                <Badge variant="info">
+                  Registered
+                </Badge>
+              )}
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">{event.title}</h1>
+            {/* TITLE */}
+            <h1 className="mb-5 text-3xl font-bold text-gray-900">
+              {event.title}
+            </h1>
 
-            <div className="grid sm:grid-cols-2 gap-4 mb-6">
+            {/* META */}
+            <div className="mb-8 grid gap-4 sm:grid-cols-2">
               <div className="flex items-center gap-3 text-sm text-gray-600">
-                <Calendar className="w-5 h-5 text-emerald-600" />
-                {new Date(event.date).toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                <Calendar className="h-5 w-5 text-emerald-600" />
+
+                {new Date(
+                  event.event_date
+                ).toLocaleDateString(
+                  "en-US",
+                  {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  }
+                )}
               </div>
+
               <div className="flex items-center gap-3 text-sm text-gray-600">
-                <Clock className="w-5 h-5 text-emerald-600" />
-                {event.time}
-              </div>
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <MapPin className="w-5 h-5 text-emerald-600" />
-                {event.location}
-              </div>
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <Users className="w-5 h-5 text-emerald-600" />
-                {event.registeredCount} / {event.capacity} spots filled
-              </div>
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <User className="w-5 h-5 text-emerald-600" />
-                Organized by {event.organizerName}
+                <Users className="h-5 w-5 text-emerald-600" />
+
+                {registeredCount} /{" "}
+                {event.capacity} spots filled
               </div>
             </div>
 
-            {/* Capacity bar */}
-            <div className="mb-6">
-              <div className="flex justify-between text-xs text-gray-500 mb-1">
+            {/* CAPACITY */}
+            <div className="mb-8">
+              <div className="mb-2 flex justify-between text-xs text-gray-500">
                 <span>Capacity</span>
-                <span>{Math.round((event.registeredCount / event.capacity) * 100)}%</span>
+
+                <span>
+                  {capacityPercentage}%
+                </span>
               </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+
+              <div className="h-2 overflow-hidden rounded-full bg-gray-100">
                 <div
-                  className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min((event.registeredCount / event.capacity) * 100, 100)}%` }}
+                  className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                  style={{
+                    width: `${capacityPercentage}%`,
+                  }}
                 />
               </div>
             </div>
 
-            <div className="border-t border-gray-100 pt-6 mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">About this event</h2>
-              <p className="text-gray-600 leading-relaxed whitespace-pre-line">{event.description}</p>
+            {/* DESCRIPTION */}
+            <div className="mb-8 border-t border-gray-100 pt-6">
+              <h2 className="mb-3 text-lg font-semibold text-gray-900">
+                About this event
+              </h2>
+
+              <p className="whitespace-pre-line leading-relaxed text-gray-600">
+                {event.description}
+              </p>
             </div>
 
-            {user && (
+            {/* ACTIONS */}
+            {user ? (
               <div className="flex gap-3">
                 {isRegistered ? (
                   <Button
                     variant="danger"
-                    onClick={() => unregisterMutation.mutate()}
-                    loading={unregisterMutation.isPending}
+                    onClick={() =>
+                      unregisterMutation.mutate()
+                    }
+                    loading={
+                      unregisterMutation.isPending
+                    }
                   >
                     Cancel Registration
                   </Button>
                 ) : (
                   <Button
-                    onClick={() => registerMutation.mutate()}
-                    loading={registerMutation.isPending}
-                    disabled={isFull}
+                    onClick={() =>
+                      registerMutation.mutate()
+                    }
+                    loading={
+                      registerMutation.isPending
+                    }
+                    disabled={
+                      isFull ||
+                      event.status !==
+                        "published"
+                    }
                   >
-                    {isFull ? 'Event is Full' : 'Register Now'}
+                    {isFull
+                      ? "Event Full"
+                      : "Register Now"}
                   </Button>
                 )}
               </div>
-            )}
-            {!user && (
-              <div className="bg-gray-50 rounded-lg p-4 text-center">
+            ) : (
+              <div className="rounded-xl bg-gray-50 p-5 text-center">
                 <p className="text-sm text-gray-600">
-                  Please{' '}
-                  <a href="/login" className="font-medium text-emerald-600 hover:text-emerald-700">
+                  Please{" "}
+                  <Link
+                    to="/login"
+                    className="font-medium text-emerald-600 hover:text-emerald-700"
+                  >
                     sign in
-                  </a>{' '}
+                  </Link>{" "}
                   to register for this event.
                 </p>
               </div>
