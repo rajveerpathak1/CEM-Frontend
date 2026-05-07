@@ -1,19 +1,19 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: 'https://campus-event-management-system-lhpe.onrender.com',
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      window.location.href = '/login';
-    }
+    // Optional centralized logging
+    console.error("API Error:", error.response?.data || error.message);
+
     return Promise.reject(error);
   }
 );

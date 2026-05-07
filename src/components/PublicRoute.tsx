@@ -1,20 +1,54 @@
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-export default function PublicRoute({ children }: { children: React.ReactNode }) {
+interface Props {
+  children: React.ReactNode;
+}
+
+export default function PublicRoute({ children }: Props) {
   const { user, loading } = useAuth();
+
+  /* ---------------- LOADING ---------------- */
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin h-8 w-8 border-4 border-emerald-600 border-t-transparent rounded-full" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
       </div>
     );
   }
 
+  /* ---------------- REDIRECT AUTHENTICATED USERS ---------------- */
+
   if (user) {
-    const dest = user.role === 'student' ? '/student/dashboard' : '/admin/dashboard';
-    return <Navigate to={dest} replace />;
+    switch (user.role) {
+      case "student":
+        return (
+          <Navigate
+            to="/student/dashboard"
+            replace
+          />
+        );
+
+      case "admin":
+        return (
+          <Navigate
+            to="/admin/dashboard"
+            replace
+          />
+        );
+
+      case "super-admin":
+        return (
+          <Navigate
+            to="/super-admin/users"
+            replace
+          />
+        );
+
+      default:
+        return <Navigate to="/" replace />;
+    }
   }
 
   return <>{children}</>;

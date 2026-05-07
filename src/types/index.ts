@@ -1,48 +1,95 @@
-export type Role = 'student' | 'admin' | 'super-admin';
+export type Role =
+  | "student"
+  | "admin"
+  | "super-admin";
+
+/* ================================================= */
+/* USER */
+/* ================================================= */
 
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   role: Role;
-  avatar?: string;
-  createdAt: string;
 }
 
+/* ================================================= */
+/* EVENT */
+/* ================================================= */
+
 export interface Event {
-  id: string;
+  id: number;
+
   title: string;
   description: string;
-  date: string;
-  time: string;
-  location: string;
-  category: string;
+
+  event_date: string;
+
   capacity: number;
-  registeredCount: number;
-  image?: string;
-  organizerId: string;
-  organizerName: string;
-  createdAt: string;
+
+  status:
+    | "draft"
+    | "published"
+    | "cancelled";
+
+  registeredCount?: number;
+
   isRegistered?: boolean;
 }
 
+/* ================================================= */
+/* REGISTRATION */
+/* ================================================= */
+
 export interface Registration {
-  id: string;
-  userId: string;
-  userName: string;
-  userEmail: string;
-  eventId: string;
-  eventTitle: string;
-  eventDate: string;
-  registeredAt: string;
+  registration_id: number;
+
+  registered_at: string;
+
+  event_id: number;
+  event_title: string;
+
+  event_date: string;
+
+  event_status: string;
+
+  user_id?: number;
+  user_name?: string;
+  user_email?: string;
 }
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  totalPages: number;
+/* ================================================= */
+/* API RESPONSE */
+/* ================================================= */
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
 }
+
+/* ================================================= */
+/* PAGINATION */
+/* ================================================= */
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+
+  data: T[];
+
+  total: number;
+
+  page: number;
+
+  limit: number;
+
+  count: number;
+}
+
+/* ================================================= */
+/* DASHBOARD */
+/* ================================================= */
 
 export interface DashboardMetrics {
   totalEvents: number;
