@@ -1,12 +1,30 @@
 import api from './client';
-import type { User, PaginatedResponse } from '../types';
+import type { User } from '../types';
+
+interface UsersResponse {
+  success: boolean;
+  count: number;
+  data: User[];
+}
 
 export const usersApi = {
-  getAll: (params?: { page?: number; limit?: number; search?: string }) =>
-    api.get<PaginatedResponse<User>>('/users', { params }).then((r) => r.data),
+  getAll: async () => {
+    const response = await api.get<UsersResponse>('/super-admin/users');
+    return response.data.data;
+  },
 
-  updateRole: (id: string, role: string) =>
-    api.put<User>(`/users/${id}/role`, { role }).then((r) => r.data),
+  promote: async (id: string) => {
+    const response = await api.patch(`/super-admin/users/${id}/promote`);
+    return response.data;
+  },
 
-  delete: (id: string) => api.delete(`/users/${id}`).then((r) => r.data),
+  demote: async (id: string) => {
+    const response = await api.patch(`/super-admin/users/${id}/demote`);
+    return response.data;
+  },
+
+  delete: async (id: string) => {
+    const response = await api.delete(`/super-admin/users/${id}`);
+    return response.data;
+  },
 };

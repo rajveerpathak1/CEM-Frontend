@@ -63,6 +63,26 @@ const adminLinks: SidebarItem[] = [
 
 const superAdminLinks: SidebarItem[] = [
   {
+    label: 'Dashboard',
+    path: '/admin/dashboard',
+    icon: LayoutDashboard,
+  },
+  {
+    label: 'Create Event',
+    path: '/admin/events/create',
+    icon: PlusCircle,
+  },
+  {
+    label: 'Manage Events',
+    path: '/admin/events',
+    icon: Calendar,
+  },
+  {
+    label: 'Registrations',
+    path: '/admin/registrations',
+    icon: ClipboardList,
+  },
+  {
     label: 'User Management',
     path: '/super-admin/users',
     icon: Users,
@@ -72,8 +92,17 @@ const superAdminLinks: SidebarItem[] = [
     path: '/super-admin/roles',
     icon: UserCog,
   },
+  {
+    label: 'My Registrations',
+    path: '/student/registrations',
+    icon: ClipboardList,
+  },
+  {
+    label: 'Profile',
+    path: '/student/profile',
+    icon: Settings,
+  },
 ];
-
 export default function DashboardLayout() {
   const { user, logout, hasRole } = useAuth();
 
