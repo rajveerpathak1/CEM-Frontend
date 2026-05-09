@@ -28,7 +28,7 @@ export interface Event {
 
   capacity: number;
 
-  status:
+  status?:
     | "draft"
     | "published"
     | "cancelled";

@@ -1,185 +1,164 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Users, Shield, Trash2 } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { usersApi } from '../../api';
-import { SearchBar, Pagination, Badge, Modal, Button, Select, EmptyState, TableRowSkeleton } from '../../components/ui';
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { Search, Users } from "lucide-react";
+
+import { usersApi } from "../../api/users";
+import type { User } from "../../types";
 
 export default function UserManagementPage() {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [roleModal, setRoleModal] = useState<{ userId: string; currentRole: string } | null>(null);
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['users', page, search],
-    queryFn: () => usersApi.getAll({ page, limit: 10, search }),
-  });
+  const [search, setSearch] = useState("");
 
-  const updateRoleMutation = useMutation({
-    mutationFn: ({ id, role }: { id: string; role: string }) => usersApi.updateRole(id, role),
-    onSuccess: () => {
-      toast.success('Role updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      setRoleModal(null);
-    },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to update role'),
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ["users"],
+    queryFn: usersApi.getAll,
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => usersApi.delete(id),
+    mutationFn: usersApi.delete,
+
     onSuccess: () => {
-      toast.success('User deleted');
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      setDeleteId(null);
+      toast.success("User deleted successfully");
+
+      queryClient.invalidateQueries({
+        queryKey: ["users"],
+      });
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Delete failed'),
+
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Delete failed");
+    },
   });
 
-  const roleOptions = [
-    { value: 'student', label: 'Student' },
-    { value: 'admin', label: 'Admin' },
-    { value: 'super-admin', label: 'Super Admin' },
-  ];
+  const filteredUsers = useMemo(() => {
+    return users.filter(
+      (u: User) =>
+        u.name.toLowerCase().includes(search.toLowerCase()) ||
+        u.email.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [users, search]);
 
-  const roleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'super-admin': return 'danger' as const;
-      case 'admin': return 'warning' as const;
-      default: return 'info' as const;
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="p-6 text-gray-600">
+        Loading users...
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-        <p className="mt-1 text-sm text-gray-600">View and manage all registered users</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">
+          User Management
+        </h1>
+
+        <p className="mt-2 text-gray-600">
+          View and manage all registered users
+        </p>
       </div>
 
-      <div className="mb-4">
-        <SearchBar value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search users by name or email..." />
+      <div className="relative">
+        <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+
+        <input
+          type="text"
+          placeholder="Search users by name or email..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-12 pr-4 outline-none focus:border-emerald-500"
+        />
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/50">
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <table className="min-w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                User
+              </th>
+
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                Role
+              </th>
+
+              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">
+                Actions
+              </th>
+            </tr>
+          </thead>
+
+          <tbody className="divide-y divide-gray-100">
+            {filteredUsers.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="py-16 text-center text-gray-500"
+                >
+                  <div className="flex flex-col items-center gap-3">
+                    <Users className="h-12 w-12 text-gray-300" />
+
+                    <p className="text-lg font-medium">
+                      No users found
+                    </p>
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => <TableRowSkeleton key={i} cols={4} />)
-              ) : !data?.data?.length ? (
-                <tr>
-                  <td colSpan={4}>
-                    <EmptyState
-                      icon={Users}
-                      title="No users found"
-                      description="Users will appear here when they register."
-                    />
+            ) : (
+              filteredUsers.map((user: User) => (
+                <tr key={user.id}>
+                  <td className="px-6 py-5">
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        {user.name}
+                      </p>
+
+                      <p className="text-sm text-gray-500">
+                        {user.email}
+                      </p>
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-5">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                        user.role === "admin"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : user.role === "super-admin"
+                          ? "bg-purple-100 text-purple-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {user.role}
+                    </span>
+                  </td>
+
+                  <td className="px-6 py-5 text-right">
+                    {user.role !== "super-admin" && (
+                      <button
+                        onClick={() => {
+                          if (
+                            confirm(
+                              `Delete ${user.name}?`
+                            )
+                          ) {
+                            deleteMutation.mutate(user.id);
+                          }
+                        }}
+                        className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </td>
                 </tr>
-              ) : (
-                data.data.map((user: any) => (
-                  <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-emerald-700 font-medium text-xs">
-                            {user.name?.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                          <p className="text-xs text-gray-500">{user.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant={roleBadgeVariant(user.role)}>
-                        {user.role}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {new Date(user.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => setRoleModal({ userId: user.id, currentRole: user.role })}
-                          className="p-2 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
-                          title="Change role"
-                        >
-                          <Shield className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteId(user.id)}
-                          className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                          title="Delete user"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
-
-      {data && (
-        <div className="mt-4">
-          <Pagination page={page} totalPages={data.totalPages} onPageChange={setPage} />
-        </div>
-      )}
-
-      {/* Role change modal */}
-      <Modal
-        open={!!roleModal}
-        onClose={() => setRoleModal(null)}
-        title="Change User Role"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600">
-            Current role: <span className="font-medium capitalize">{roleModal?.currentRole}</span>
-          </p>
-          <Select
-            label="New Role"
-            options={roleOptions}
-            defaultValue={roleModal?.currentRole}
-            onChange={(e) => {
-              if (roleModal) {
-                updateRoleMutation.mutate({ id: roleModal.userId, role: e.target.value });
-              }
-            }}
-          />
-          <div className="flex gap-3 justify-end pt-2">
-            <Button variant="secondary" onClick={() => setRoleModal(null)}>Cancel</Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Delete confirmation modal */}
-      <Modal open={!!deleteId} onClose={() => setDeleteId(null)} title="Delete User">
-        <p className="text-sm text-gray-600 mb-6">
-          Are you sure you want to delete this user? This action cannot be undone.
-        </p>
-        <div className="flex gap-3 justify-end">
-          <Button variant="secondary" onClick={() => setDeleteId(null)}>Cancel</Button>
-          <Button variant="danger" onClick={() => deleteId && deleteMutation.mutate(deleteId)} loading={deleteMutation.isPending}>
-            Delete
-          </Button>
-        </div>
-      </Modal>
     </div>
   );
 }

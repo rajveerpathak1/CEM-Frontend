@@ -112,7 +112,7 @@ export default function DashboardLayout() {
 
   const links = hasRole(['super-admin'])
     ? superAdminLinks
-    : hasRole(['admin'])
+    : hasRole(['admin','super-admin'])
     ? adminLinks
     : studentLinks;
 

@@ -63,10 +63,10 @@ export default function EditEventPage() {
       reset({
         title: event.title,
         description: event.description,
-        date: event.date,
-        time: event.time,
-        location: event.location,
-        category: event.category,
+        date: event.event_date,
+        // time: event.time,
+        // location: event.location,
+        // category: event.category,
         capacity: event.capacity,
       });
     }

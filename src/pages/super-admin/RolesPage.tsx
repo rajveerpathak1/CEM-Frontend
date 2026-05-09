@@ -1,137 +1,169 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Shield, ArrowUp, ArrowDown } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { usersApi } from '../../api';
-import { SearchBar, Pagination, Badge, Button, EmptyState, TableRowSkeleton } from '../../components/ui';
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { Shield, Search } from "lucide-react";
+
+import { usersApi } from "../../api/users";
+import type { User } from "../../types";
 
 export default function RolesPage() {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['users-roles', page, search],
-    queryFn: () => usersApi.getAll({ page, limit: 10, search }),
+  const [search, setSearch] = useState("");
+
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ["users"],
+    queryFn: usersApi.getAll,
   });
 
   const updateRoleMutation = useMutation({
-    mutationFn: ({ id, role }: { id: string; role: string }) => usersApi.updateRole(id, role),
+    mutationFn: ({
+      id,
+      role,
+    }: {
+      id: number;
+      role: "admin" | "student";
+    }) => usersApi.updateRole(id, role),
+
     onSuccess: () => {
-      toast.success('Role updated');
-      queryClient.invalidateQueries({ queryKey: ['users-roles'] });
+      toast.success("Role updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to update role'),
+
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || "Failed to update role");
+    },
   });
 
-  const promote = (id: string, currentRole: string) => {
-    const next = currentRole === 'student' ? 'admin' : 'super-admin';
-    updateRoleMutation.mutate({ id, role: next });
-  };
+  const filteredUsers = useMemo(() => {
+    return users.filter(
+      (u: User) =>
+        u.name.toLowerCase().includes(search.toLowerCase()) ||
+        u.email.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [users, search]);
 
-  const demote = (id: string, currentRole: string) => {
-    const next = currentRole === 'super-admin' ? 'admin' : 'student';
-    updateRoleMutation.mutate({ id, role: next });
-  };
-
-  const roleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'super-admin': return 'danger' as const;
-      case 'admin': return 'warning' as const;
-      default: return 'info' as const;
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="p-6 text-gray-600">
+        Loading users...
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Role Management</h1>
-        <p className="mt-1 text-sm text-gray-600">Promote or demote users between roles</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Role Management
+        </h1>
+
+        <p className="mt-2 text-gray-600">
+          Promote or demote users between roles
+        </p>
       </div>
 
-      <div className="mb-4">
-        <SearchBar value={search} onChange={(v) => { setSearch(v); setPage(1); }} placeholder="Search users..." />
+      <div className="relative">
+        <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+
+        <input
+          type="text"
+          placeholder="Search users..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-12 pr-4 outline-none focus:border-emerald-500"
+        />
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/50">
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Current Role</th>
-                <th className="text-right px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <table className="min-w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                User
+              </th>
+
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                Current Role
+              </th>
+
+              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">
+                Actions
+              </th>
+            </tr>
+          </thead>
+
+          <tbody className="divide-y divide-gray-100">
+            {filteredUsers.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="py-16 text-center text-gray-500"
+                >
+                  <div className="flex flex-col items-center gap-3">
+                    <Shield className="h-12 w-12 text-gray-300" />
+
+                    <p className="text-lg font-medium">
+                      No users found
+                    </p>
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => <TableRowSkeleton key={i} cols={3} />)
-              ) : !data?.data?.length ? (
-                <tr>
-                  <td colSpan={3}>
-                    <EmptyState
-                      icon={Shield}
-                      title="No users found"
-                      description="Users will appear here when they register."
-                    />
+            ) : (
+              filteredUsers.map((user: User) => (
+                <tr key={user.id}>
+                  <td className="px-6 py-5">
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        {user.name}
+                      </p>
+
+                      <p className="text-sm text-gray-500">
+                        {user.email}
+                      </p>
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-5">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                        user.role === "admin"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : user.role === "super-admin"
+                          ? "bg-purple-100 text-purple-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {user.role}
+                    </span>
+                  </td>
+
+                  <td className="px-6 py-5 text-right">
+                    {user.role !== "super-admin" && (
+                      <button
+                        onClick={() =>
+                          updateRoleMutation.mutate({
+                            id: user.id,
+                            role:
+                              user.role === "student"
+                                ? "admin"
+                                : "student",
+                          })
+                        }
+                        className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                      >
+                        {user.role === "student"
+                          ? "Promote"
+                          : "Demote"}
+                      </button>
+                    )}
                   </td>
                 </tr>
-              ) : (
-                data.data.map((user: any) => (
-                  <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <span className="text-emerald-700 font-medium text-xs">
-                            {user.name?.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                          <p className="text-xs text-gray-500">{user.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant={roleBadgeVariant(user.role)}>{user.role}</Badge>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => promote(user.id, user.role)}
-                          disabled={user.role === 'super-admin' || updateRoleMutation.isPending}
-                          className="text-emerald-600 hover:bg-emerald-50"
-                        >
-                          <ArrowUp className="w-4 h-4" />
-                          Promote
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => demote(user.id, user.role)}
-                          disabled={user.role === 'student' || updateRoleMutation.isPending}
-                          className="text-amber-600 hover:bg-amber-50"
-                        >
-                          <ArrowDown className="w-4 h-4" />
-                          Demote
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
-
-      {data && (
-        <div className="mt-4">
-          <Pagination page={page} totalPages={data.totalPages} onPageChange={setPage} />
-        </div>
-      )}
     </div>
   );
 }

@@ -42,6 +42,25 @@ export const eventsApi = {
     return response.data;
   },
 
+
+    /* ---------------- ADMIN GET ALL EVENTS ---------------- */
+
+  getAdminEvents: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+  }): Promise<PaginatedResponse<Event>> => {
+    const response = await api.get<
+      PaginatedResponse<Event>
+    >("/admin/events", {
+      params,
+    });
+
+    return response.data;
+  },
+
+  
   /* ---------------- GET SINGLE EVENT ---------------- */
 
   getById: async (
