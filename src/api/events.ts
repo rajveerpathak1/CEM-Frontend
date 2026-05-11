@@ -42,8 +42,7 @@ export const eventsApi = {
     return response.data;
   },
 
-
-    /* ---------------- ADMIN GET ALL EVENTS ---------------- */
+  /* ---------------- ADMIN GET ALL EVENTS ---------------- */
 
   getAdminEvents: async (params?: {
     page?: number;
@@ -60,7 +59,6 @@ export const eventsApi = {
     return response.data;
   },
 
-  
   /* ---------------- GET SINGLE EVENT ---------------- */
 
   getById: async (
@@ -68,6 +66,18 @@ export const eventsApi = {
   ): Promise<Event> => {
     const response = await api.get<EventResponse>(
       `/events/${id}`
+    );
+
+    return response.data.data;
+  },
+
+  /* ---------------- ADMIN GET EVENT BY ID ---------------- */
+
+  getAdminEventById: async (
+    id: string | number
+  ): Promise<Event> => {
+    const response = await api.get<EventResponse>(
+      `/admin/events/${id}`
     );
 
     return response.data.data;
