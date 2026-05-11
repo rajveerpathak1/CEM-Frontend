@@ -25,15 +25,11 @@ export default function AdminDashboard() {
   });
 
   // Users Query
-  const { data: usersData } = useQuery({
-    queryKey: ['admin-users-count'],
-    queryFn: () =>
-      api
-        .get('/users', {
-          params: { page: 1, limit: 1 },
-        })
-        .then((r) => r.data),
-  });
+const { data: usersData = [] } = useQuery({
+  queryKey: ['admin-users'],
+  queryFn: () =>
+    api.get('/super-admin/users').then((r) => r.data.data),
+});
 
   return (
     <div>
@@ -75,12 +71,14 @@ export default function AdminDashboard() {
           color="blue"
         />
 
-        <MetricCard
-          title="Total Users"
-          value={usersData?.total ?? 0}
-          icon={Users}
-          color="amber"
-        />
+        {usersData && (
+  <MetricCard
+    title="Total Users"
+    value={usersData.length}
+    icon={Users}
+    color="amber"
+  />
+)}
 
         <MetricCard
           title="Upcoming Events"

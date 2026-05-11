@@ -93,11 +93,6 @@ const superAdminLinks: SidebarItem[] = [
     icon: UserCog,
   },
   {
-    label: 'My Registrations',
-    path: '/student/registrations',
-    icon: ClipboardList,
-  },
-  {
     label: 'Profile',
     path: '/student/profile',
     icon: Settings,
