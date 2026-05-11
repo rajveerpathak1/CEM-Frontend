@@ -201,7 +201,7 @@ const ManageEventsPage = () => {
                         size="sm"
                         onClick={() =>
                           navigate(
-                            `/admin/events/edit/${event.id}`
+                            `/admin/events/${event.id}/edit`
                           )
                         }
                       >
