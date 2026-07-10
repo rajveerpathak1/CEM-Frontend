@@ -67,7 +67,7 @@ const ManageEventsPage = () => {
         </div>
 
         <Button
-          onClick={() => navigate("/admin/create-event")}
+          onClick={() => navigate("/admin/events/create")}
           className="flex items-center gap-2"
         >
           <Plus size={18} />

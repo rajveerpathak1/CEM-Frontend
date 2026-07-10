@@ -36,8 +36,10 @@ export default function SignupPage() {
     setLoading(true);
     try {
       await signup(data.name, data.email, data.password);
-      toast.success('Account created successfully!');
-      navigate('/student/dashboard');
+      toast.success('Registration successful. Please verify your email before logging in.', {
+        duration: 6000,
+      });
+      navigate('/login');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Signup failed');
     } finally {

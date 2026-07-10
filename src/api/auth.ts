@@ -9,6 +9,12 @@ interface AuthResponse {
   message?: string;
 }
 
+interface LoginResponse {
+  success: boolean;
+  accessToken: string;
+  user: User;
+}
+
 interface MeResponse {
   success: boolean;
   data: User;
@@ -17,7 +23,6 @@ interface MeResponse {
 interface SignupResponse {
   success: boolean;
   message: string;
-  user: User;
 }
 
 /* ---------------- AUTH API ---------------- */
@@ -36,8 +41,8 @@ export const authApi = {
   login: async (
     email: string,
     password: string
-  ): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>(
+  ): Promise<LoginResponse> => {
+    const response = await api.post<LoginResponse>(
       "/auth/login",
       {
         email,
@@ -48,7 +53,7 @@ export const authApi = {
     return response.data;
   },
 
-  /* ---------- SIGNUP ---------- */
+  /* ---------- SIGNUP / REGISTER ---------- */
 
   signup: async (
     name: string,
@@ -56,7 +61,7 @@ export const authApi = {
     password: string
   ): Promise<SignupResponse> => {
     const response = await api.post<SignupResponse>(
-      "/auth/signup",
+      "/auth/register",
       {
         name,
         email,
@@ -67,6 +72,15 @@ export const authApi = {
     return response.data;
   },
 
+  /* ---------- REFRESH ACCESS TOKEN ---------- */
+
+  refresh: async (): Promise<{ success: boolean; accessToken: string }> => {
+    const response = await api.post<{ success: boolean; accessToken: string }>(
+      "/auth/refresh"
+    );
+    return response.data;
+  },
+
   /* ---------- LOGOUT ---------- */
 
   logout: async (): Promise<AuthResponse> => {
@@ -74,6 +88,51 @@ export const authApi = {
       "/auth/logout"
     );
 
+    return response.data;
+  },
+
+  /* ---------- VERIFY EMAIL ---------- */
+
+  verifyEmail: async (token: string): Promise<AuthResponse> => {
+    const response = await api.get<AuthResponse>(
+      `/auth/verify-email`,
+      {
+        params: { token },
+      }
+    );
+    return response.data;
+  },
+
+  /* ---------- RESEND VERIFICATION ---------- */
+
+  resendVerification: async (email: string): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>(
+      "/auth/resend-verification",
+      { email }
+    );
+    return response.data;
+  },
+
+  /* ---------- FORGOT PASSWORD ---------- */
+
+  forgotPassword: async (email: string): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>(
+      "/auth/forgot-password",
+      { email }
+    );
+    return response.data;
+  },
+
+  /* ---------- RESET PASSWORD ---------- */
+
+  resetPassword: async (token: string, password: string): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>(
+      "/auth/reset-password",
+      {
+        token,
+        password,
+      }
+    );
     return response.data;
   },
 };

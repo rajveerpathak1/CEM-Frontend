@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import { authApi } from "../api";
+import { setAccessToken } from "../api/client";
 import type { User, Role } from "../types";
 
 interface AuthContextType {
@@ -39,9 +40,17 @@ export function AuthProvider({
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const currentUser = await authApi.getMe();
-        setUser(currentUser);
+        // Try refreshing the access token first using the HttpOnly refresh cookie
+        const response = await authApi.refresh();
+        if (response.accessToken) {
+          setAccessToken(response.accessToken);
+          const currentUser = await authApi.getMe();
+          setUser(currentUser);
+        } else {
+          setUser(null);
+        }
       } catch (error) {
+        setAccessToken(null);
         setUser(null);
       } finally {
         setLoading(false);
@@ -51,19 +60,32 @@ export function AuthProvider({
     initializeAuth();
   }, []);
 
+  /* ---------------- LISTEN TO AUTH EXPIRATION ---------------- */
+
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      setUser(null);
+    };
+
+    window.addEventListener("auth-expired", handleAuthExpired);
+    return () => {
+      window.removeEventListener("auth-expired", handleAuthExpired);
+    };
+  }, []);
+
   /* ---------------- LOGIN ---------------- */
 
   const login = async (
     email: string,
     password: string
   ) => {
-    // login only sets session cookie
-    await authApi.login(email, password);
+    const response = await authApi.login(email, password);
+    
+    // Store access token in memory
+    setAccessToken(response.accessToken);
 
-    // fetch actual user
-    const currentUser = await authApi.getMe();
-
-    setUser(currentUser);
+    // Set user info
+    setUser(response.user);
   };
 
   /* ---------------- SIGNUP ---------------- */
@@ -73,7 +95,7 @@ export function AuthProvider({
     email: string,
     password: string
   ) => {
-    // signup does NOT auto-login
+    // signup does NOT auto-login and sends verify email
     await authApi.signup(name, email, password);
   };
 
@@ -83,6 +105,7 @@ export function AuthProvider({
     try {
       await authApi.logout();
     } finally {
+      setAccessToken(null);
       setUser(null);
     }
   };

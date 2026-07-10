@@ -20,6 +20,10 @@ import LoginPage from "./pages/public/LoginPage";
 import SignupPage from "./pages/public/SignupPage";
 import BrowseEventsPage from "./pages/public/BrowseEventsPage";
 import EventDetailsPage from "./pages/public/EventDetailsPage";
+import VerifyEmailPage from "./pages/public/VerifyEmailPage";
+import ForgotPasswordPage from "./pages/public/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/public/ResetPasswordPage";
+import OAuthSuccessPage from "./pages/public/OAuthSuccessPage";
 
 /* ---------------- STUDENT ---------------- */
 
@@ -95,6 +99,26 @@ export default function App() {
             <Route
               path="/events/:id"
               element={<EventDetailsPage />}
+            />
+
+            <Route
+              path="/verify-email"
+              element={<VerifyEmailPage />}
+            />
+
+            <Route
+              path="/forgot-password"
+              element={<ForgotPasswordPage />}
+            />
+
+            <Route
+              path="/reset-password"
+              element={<ResetPasswordPage />}
+            />
+
+            <Route
+              path="/oauth-success"
+              element={<OAuthSuccessPage />}
             />
 
             {/* ================================================= */}
