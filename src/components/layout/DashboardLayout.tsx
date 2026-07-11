@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   X,
+  Sparkles,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
@@ -32,7 +33,7 @@ const studentLinks: SidebarItem[] = [
     icon: ClipboardList,
   },
   {
-    label: 'Profile',
+    label: 'Profile Settings',
     path: '/student/profile',
     icon: Settings,
   },
@@ -58,6 +59,11 @@ const adminLinks: SidebarItem[] = [
     label: 'Registrations',
     path: '/admin/registrations',
     icon: ClipboardList,
+  },
+  {
+    label: 'Profile Settings',
+    path: '/student/profile',
+    icon: Settings,
   },
 ];
 
@@ -93,21 +99,20 @@ const superAdminLinks: SidebarItem[] = [
     icon: UserCog,
   },
   {
-    label: 'Profile',
+    label: 'Profile Settings',
     path: '/student/profile',
     icon: Settings,
   },
 ];
+
 export default function DashboardLayout() {
   const { user, logout, hasRole } = useAuth();
-
   const navigate = useNavigate();
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const links = hasRole(['super-admin'])
     ? superAdminLinks
-    : hasRole(['admin','super-admin'])
+    : hasRole(['admin'])
     ? adminLinks
     : studentLinks;
 
@@ -121,28 +126,28 @@ export default function DashboardLayout() {
   };
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+    `flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border-l-4 ${
       isActive
-        ? 'bg-emerald-50 text-emerald-700 shadow-sm'
-        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+        ? 'bg-gradient-to-r from-emerald-50 to-teal-50/30 text-emerald-700 border-emerald-500 shadow-sm'
+        : 'text-slate-600 border-transparent hover:bg-slate-50 hover:text-slate-900'
     }`;
 
   const sidebar = (
-    <>
+    <div className="flex flex-col h-full bg-white">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-100">
-        <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center shadow-sm">
-          <span className="text-white font-bold text-sm">CE</span>
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-100/85">
+        <div className="w-10 h-10 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/10">
+          <Calendar className="text-white w-5.5 h-5.5" />
         </div>
 
         <div>
-          <p className="text-lg font-bold text-gray-900">CampusEvents</p>
-          <p className="text-xs text-gray-500">Management System</p>
+          <p className="text-base font-bold text-slate-900 font-display">CampusEvents</p>
+          <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Portal Control</p>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
         {links.map((link) => (
           <NavLink
             key={link.path}
@@ -157,40 +162,40 @@ export default function DashboardLayout() {
       </nav>
 
       {/* User section */}
-      <div className="px-3 py-4 border-t border-gray-100">
-        <div className="flex items-center gap-3 px-3 py-2 mb-3 rounded-xl bg-gray-50">
-          <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-            <span className="text-emerald-700 font-semibold text-sm">
+      <div className="px-4 py-5 border-t border-slate-100/85">
+        <div className="flex items-center gap-3 px-3.5 py-3 mb-4 rounded-2xl bg-slate-50 border border-slate-100">
+          <div className="w-10 h-10 bg-gradient-to-tr from-emerald-100 to-teal-50 rounded-full flex items-center justify-center border border-emerald-200/40">
+            <span className="text-emerald-800 font-bold text-sm">
               {user?.name?.charAt(0)?.toUpperCase() || 'U'}
             </span>
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">
+            <p className="text-sm font-bold text-slate-900 truncate">
               {user?.name}
             </p>
 
-            <p className="text-xs text-gray-500 capitalize">
+            <span className="inline-flex items-center px-1.5 py-0.5 bg-emerald-50/80 text-emerald-700 text-[9px] uppercase tracking-wider font-bold rounded-md border border-emerald-100/50 mt-0.5 capitalize">
               {user?.role}
-            </p>
+            </span>
           </div>
         </div>
 
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+          className="flex items-center gap-3 w-full px-3.5 py-2.5 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50/70 transition-colors active:scale-95 duration-150"
         >
           <LogOut className="w-5 h-5" />
           Sign out
         </button>
       </div>
-    </>
+    </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-slate-50 flex">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-gray-200 fixed inset-y-0 shadow-sm">
+      <aside className="hidden lg:flex lg:flex-col lg:w-64 bg-white border-r border-slate-200/60 fixed inset-y-0 shadow-sm z-20">
         {sidebar}
       </aside>
 
@@ -199,15 +204,15 @@ export default function DashboardLayout() {
         <div className="fixed inset-0 z-50 lg:hidden">
           {/* Overlay */}
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
 
           {/* Sidebar */}
-          <aside className="fixed inset-y-0 left-0 w-64 bg-white shadow-2xl flex flex-col">
+          <aside className="fixed inset-y-0 left-0 w-66 bg-white shadow-2xl flex flex-col animate-fade-in-up">
             <button
               onClick={() => setSidebarOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all active:scale-95"
             >
               <X className="w-5 h-5" />
             </button>
@@ -220,37 +225,37 @@ export default function DashboardLayout() {
       {/* Main Content */}
       <div className="flex-1 lg:pl-64">
         {/* Header */}
-        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <header className="sticky top-0 z-10 bg-white/75 backdrop-blur-md border-b border-slate-200/55 px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+            className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
 
           <div className="lg:hidden flex items-center gap-2">
-            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xs">CE</span>
+            <div className="w-8.5 h-8.5 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-lg flex items-center justify-center shadow-md shadow-emerald-500/10">
+              <Calendar className="text-white w-4.5 h-4.5" />
             </div>
 
-            <span className="font-semibold text-gray-900">
+            <span className="font-bold text-slate-900 font-display">
               CampusEvents
             </span>
           </div>
 
           <div className="hidden sm:flex items-center gap-3">
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-bold text-slate-900">
                 {user?.name}
               </p>
 
-              <p className="text-xs text-gray-500 capitalize">
+              <span className="inline-flex items-center px-1.5 py-0.2 bg-emerald-50/50 text-emerald-700 text-[9px] uppercase tracking-wider font-bold rounded-md border border-emerald-100/40 capitalize">
                 {user?.role}
-              </p>
+              </span>
             </div>
 
-            <div className="w-9 h-9 bg-emerald-100 rounded-full flex items-center justify-center">
-              <span className="text-emerald-700 font-semibold text-sm">
+            <div className="w-10 h-10 bg-gradient-to-tr from-emerald-100 to-teal-50 rounded-full flex items-center justify-center border border-emerald-200/40">
+              <span className="text-emerald-800 font-bold text-sm">
                 {user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </span>
             </div>
@@ -258,10 +263,10 @@ export default function DashboardLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="p-4 sm:p-6 lg:p-8">
+        <main className="p-4 sm:p-6 lg:p-8 animate-fade-in-up">
           <Outlet />
         </main>
       </div>
     </div>
   );
-}
+}

@@ -6,9 +6,10 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Input } from '../../components/ui';
+import { Sparkles, Calendar } from 'lucide-react';
 
 const schema = z.object({
-  email: z.string().email('Enter a valid email'),
+  email: z.string().email('Enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
@@ -39,59 +40,69 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-4 relative overflow-hidden">
+      {/* Background gradients */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-emerald-500/10 blur-[120px] animate-pulse-slow pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-teal-500/10 blur-[120px] animate-pulse-slow pointer-events-none" />
+
+      <div className="w-full max-w-md relative z-10 animate-fade-in-up">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-lg">CE</span>
+          <div className="w-12 h-12 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/20">
+            <Calendar className="text-white w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-          <p className="mt-2 text-sm text-gray-600">Sign in to your account to continue</p>
+          <h1 className="text-3xl font-extrabold text-white font-display">Welcome back</h1>
+          <p className="mt-2 text-sm text-slate-400">Sign in to your account to continue</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
+        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <Input
-              label="Email"
-              type="email"
-              placeholder="you@university.edu"
-              error={errors.email?.message}
-              {...register('email')}
-            />
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
+              <Input
+                type="email"
+                placeholder="you@university.edu"
+                error={errors.email?.message}
+                className="bg-slate-950/60 border-slate-800 text-white placeholder-slate-600 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 rounded-xl"
+                {...register('email')}
+              />
+            </div>
             
             <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Password</label>
               <Input
-                label="Password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="••••••••"
                 error={errors.password?.message}
+                className="bg-slate-950/60 border-slate-800 text-white placeholder-slate-600 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 rounded-xl"
                 {...register('password')}
               />
-              <div className="flex justify-end">
-                <Link to="/forgot-password" className="text-xs font-medium text-emerald-600 hover:text-emerald-700">
+              <div className="flex justify-end pt-1">
+                <Link to="/forgot-password" className="text-xs font-semibold text-emerald-400 hover:text-emerald-350 transition-colors">
                   Forgot password?
                 </Link>
               </div>
             </div>
 
-            <Button type="submit" loading={loading} className="w-full">
+            <Button
+              type="submit"
+              loading={loading}
+              className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-bold py-3 rounded-xl transition-all shadow-md shadow-emerald-600/10 active:scale-95 duration-150"
+            >
               Sign in
             </Button>
 
             <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-gray-200"></div>
-              <span className="flex-shrink mx-4 text-gray-400 text-xs uppercase">Or continue with</span>
-              <div className="flex-grow border-t border-gray-200"></div>
+              <div className="flex-grow border-t border-slate-800"></div>
+              <span className="flex-shrink mx-4 text-slate-500 text-xs font-bold uppercase tracking-wider">Or login with</span>
+              <div className="flex-grow border-t border-slate-800"></div>
             </div>
 
             <Button
               type="button"
               variant="secondary"
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-950/90 font-bold py-3 rounded-xl flex items-center justify-center gap-2 border hover:border-slate-700 transition-all active:scale-95 duration-150"
               onClick={() => {
                 const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
-                // Redirect directly to the google OAuth route (oauth/google)
-                // We strip the /v1 suffix from baseURL if it exists to access parent OAuth mounts
                 const basePath = apiBase.endsWith("/api/v1") 
                   ? apiBase.replace("/api/v1", "/api/v1") 
                   : apiBase;
@@ -121,9 +132,9 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-slate-400">
           Don't have an account?{' '}
-          <Link to="/signup" className="font-medium text-emerald-600 hover:text-emerald-700">
+          <Link to="/signup" className="font-semibold text-emerald-400 hover:text-emerald-350 transition-colors">
             Sign up
           </Link>
         </p>
@@ -131,3 +142,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
