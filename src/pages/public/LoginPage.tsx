@@ -108,7 +108,10 @@ export default function LoginPage() {
               variant="secondary"
               className="w-full bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-950/90 font-bold py-3 rounded-xl flex items-center justify-center gap-2 border hover:border-slate-700 transition-all active:scale-95 duration-150"
               onClick={() => {
-                const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+                const apiBase = import.meta.env.VITE_API_URL || 
+                  (import.meta.env.PROD 
+                    ? "https://campus-event-management-system-lhpe.onrender.com/api/v1" 
+                    : "http://localhost:5000/api/v1");
                 const basePath = apiBase.endsWith("/api/v1") 
                   ? apiBase.replace("/api/v1", "/api/v1") 
                   : apiBase;
