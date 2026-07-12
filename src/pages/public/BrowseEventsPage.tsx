@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, Users, Filter, Sparkles, MapPin, Tag } from "lucide-react";
+import { Calendar, Users, Filter, Sparkles, MapPin } from "lucide-react";
 import { eventsApi } from "../../api";
 import {
   SearchBar,

@@ -13,7 +13,7 @@ import type { User, Role } from "../types";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   signup: (
     name: string,
     email: string,
@@ -78,7 +78,7 @@ export function AuthProvider({
   const login = async (
     email: string,
     password: string
-  ) => {
+  ): Promise<User> => {
     const response = await authApi.login(email, password);
     
     // Store access token in memory
@@ -86,6 +86,8 @@ export function AuthProvider({
 
     // Set user info
     setUser(response.user);
+
+    return response.user;
   };
 
   /* ---------------- SIGNUP ---------------- */

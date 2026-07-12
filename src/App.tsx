@@ -24,6 +24,7 @@ import VerifyEmailPage from "./pages/public/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/public/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/public/ResetPasswordPage";
 import OAuthSuccessPage from "./pages/public/OAuthSuccessPage";
+import UnauthorizedPage from "./pages/public/UnauthorizedPage";
 
 /* ---------------- STUDENT ---------------- */
 
@@ -119,6 +120,11 @@ export default function App() {
             <Route
               path="/oauth-success"
               element={<OAuthSuccessPage />}
+            />
+
+            <Route
+              path="/unauthorized"
+              element={<UnauthorizedPage />}
             />
 
             {/* ================================================= */}

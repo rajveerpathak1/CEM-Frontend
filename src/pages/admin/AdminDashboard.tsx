@@ -10,8 +10,12 @@ import {
 import { eventsApi, registrationsApi } from '../../api';
 import { MetricCard } from '../../components/ui';
 import api from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 
 export default function AdminDashboard() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'super-admin';
+
   // Events Query
   const { data: eventsData } = useQuery({
     queryKey: ['admin-events'],
@@ -25,11 +29,12 @@ export default function AdminDashboard() {
   });
 
   // Users Query
-const { data: usersData = [] } = useQuery({
-  queryKey: ['admin-users'],
-  queryFn: () =>
-    api.get('/super-admin/users').then((r) => r.data.data),
-});
+  const { data: usersData = null } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: () =>
+      api.get('/super-admin/users').then((r) => r.data.data),
+    enabled: isSuperAdmin,
+  });
 
   return (
     <div>
@@ -71,14 +76,14 @@ const { data: usersData = [] } = useQuery({
           color="blue"
         />
 
-        {usersData && (
-  <MetricCard
-    title="Total Users"
-    value={usersData.length}
-    icon={Users}
-    color="amber"
-  />
-)}
+        {isSuperAdmin && usersData && (
+          <MetricCard
+            title="Total Users"
+            value={usersData.length}
+            icon={Users}
+            color="amber"
+          />
+        )}
 
         <MetricCard
           title="Upcoming Events"

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Input } from '../../components/ui';
-import { Sparkles, Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 
 const schema = z.object({
   email: z.string().email('Enter a valid email address'),
@@ -29,9 +29,15 @@ export default function LoginPage() {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      await login(data.email, data.password);
+      const loggedInUser = await login(data.email, data.password);
       toast.success('Welcome back!');
-      navigate('/student/dashboard');
+      if (loggedInUser.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (loggedInUser.role === 'super-admin') {
+        navigate('/super-admin/users');
+      } else {
+        navigate('/student/dashboard');
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Invalid credentials');
     } finally {

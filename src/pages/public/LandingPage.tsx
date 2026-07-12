@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Calendar, Users, Shield, ArrowRight, Sparkles, Award, Compass, Heart } from 'lucide-react';
+import { Shield, ArrowRight, Sparkles, Award, Compass } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function LandingPage() {

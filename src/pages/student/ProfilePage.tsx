@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { Shield, Camera, Key, User, Info, CheckCircle } from 'lucide-react';
+import { Shield, Camera, Key, User, Info } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button, Input } from '../../components/ui';
 
@@ -33,7 +33,7 @@ export default function ProfilePage() {
     },
   });
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (_data: FormData) => {
     setLoading(true);
     try {
       // Simulate profile saving to protect against unimplemented backend endpoints
